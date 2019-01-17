@@ -1,0 +1,55 @@
+---
+title: "EE283 HW2"
+output: html_document
+---
+
+#baseR way. Found a function to use.
+```{r}
+
+df <- read.delim ("data.txt", header = TRUE)
+
+df$ID <- seq.int(nrow(df))
+
+df$closest <- ifelse(df$value==1, df$ID, 
+                        ifelse(df$value==0, 0,NA))
+
+df$closest[df$closest==0] <- NA
+
+f1 <- function(x) {
+  N <- length(x)
+  na.pos <- which(is.na(x))
+  if (length(na.pos) %in% c(0, N)) {
+    return(x)
+  }
+  non.na.pos <- which(!is.na(x))
+  intervals  <- findInterval(na.pos, non.na.pos,
+                             all.inside = TRUE)
+  left.pos   <- non.na.pos[pmax(1, intervals)]
+  right.pos  <- non.na.pos[pmin(N, intervals+1)]
+  left.dist  <- na.pos - left.pos
+  right.dist <- right.pos - na.pos
+
+  x[na.pos] <- ifelse(left.dist <= right.dist,
+                        x[left.pos], x[right.pos])
+  return(x)
+}
+
+
+f1
+df <- apply(df, 2, f1)
+df <- data.frame(df)
+df <- df[-c(2)]
+
+```
+
+#tidyverse way. I tried.
+
+```
+df <- read.delim("data.txt", header = TRUE)
+
+df <- rename(df, a=value)
+
+df <- df %>% mutate(c = ifelse(a == 1, row_number(), NA))
+
+?
+```
